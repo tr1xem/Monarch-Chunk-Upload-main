@@ -2,9 +2,11 @@ import os
 import requests
 import argparse
 from pathlib import Path
-import math 
-api_url = "https://api.monarchupload.cc/v3/upload"
+import math
 
+apiKey = "api_key"
+api_url = "https://api.monarchupload.cc/v3/upload"
+chunked = "false"
 CHUNK_SIZE = 5242880
 MAX_RETRY = 3
 
@@ -34,18 +36,22 @@ def print_progress_bar(percent):
 # Upload your file by breaking it into chunks and sending each piece
 def upload(file, url ="https://api.monarchupload.cc/v3/upload"):
     api_url = "https://api.monarchupload.cc/v3/upload"
-    apiKey = "api_key"
-    chunked = True
+    
+   
     global total_chunks
     content_name = os.path.basename(file)
     content_path = os.path.abspath(file)
     content_size = os.path.getsize(content_path)
+    if content_size < CHUNK_SIZE:
+        chunked = "false"
+    else:
+        chunked = "true"
     os.system("cls")
     print(content_name, content_path, content_size )
 
     with open(content_path, "rb") as f:
         index = 0
-        headers = {}
+        
 
         for chunk, chunk_no in read_in_chunks(content_path, CHUNK_SIZE):
 #            print(content_name, content_path, content_size )
@@ -63,17 +69,17 @@ def upload(file, url ="https://api.monarchupload.cc/v3/upload"):
                 "name ":"file",
                 'filename':content_name,
                 'secret': apiKey,
-                'chunked': "true",
+                'chunked': chunked,
                 'private':"false",
                 'lastchunk': str(last_chunk),
                 "content-type": "multipart/form-data",
-              #  "content-range": 'bytes %s-%s/%s' % (index - len(chunk), offset - 1, content_size)
+                "content-range": 'bytes %s-%s/%s' % (index - len(chunk), offset - 1, content_size)
             }
 
             percent = (chunk_no / total_chunks) * 100
             print_progress_bar(percent)
             retry_count = 0
-           # while retry_count < MAX_RETRY:
+         #   while retry_count < MAX_RETRY:
             try:
                 files = {"file": (content_name,chunk),
                 "filename" : content_name}
@@ -85,19 +91,23 @@ def upload(file, url ="https://api.monarchupload.cc/v3/upload"):
                     
                 else:
                     os.system("cls")
-                    print("Total Chunks:" , total_chunks , "\nSuccessfully uploaded chunk no. " , chunk_no + 1)               
-
+                    print( f"\nSuccessfully uploaded chunk  {chunk_no + 1}/{total_chunks}")               
                 
+                    """if response_json["data"]["status"] == "success" or  response_json["status"] == "success":
+                        break
+                    else:
+                        print("Upload failed, retrying...")
+                        retry_count += 1
+                        if retry_count == MAX_RETRY:
+                            print("Maximum retry attempts reached. Upload failed.")
+                            return
+                        
+                    """
             except Exception as e:
                 print(e)
-                pass
-                """print("Upload failed, retrying...")
-                retry_count += 1
-                if retry_count == MAX_RETRY:
-                    print("Maximum retry attempts reached. Upload failed.")
-                    return
                     
-                    """
+                        
+                  
                     
 
 # Add a path to the file you want to upload, and away we go! 
