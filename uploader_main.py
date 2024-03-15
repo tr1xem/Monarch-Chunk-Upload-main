@@ -32,7 +32,7 @@ def print_progress_bar(percent):
     print(f"\rProgress: {progress_bar} {percent:.2f}%", end="\n", flush=True)
 
 # Upload your file by breaking it into chunks and sending each piece
-def upload(file, url):
+def upload(file, url ="https://api.monarchupload.cc/v3/upload"):
     api_url = "https://api.monarchupload.cc/v3/upload"
     apiKey = "api_key"
     chunked = True
